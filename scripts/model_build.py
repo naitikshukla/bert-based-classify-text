@@ -4,6 +4,15 @@ import tensorflow as tf
 from scripts.utils.train_utils import focal_loss
 from transformers import TFDistilBertModel, DistilBertConfig
 
+# wrap  transformer model call inside a Keras Layer and override the call method to solve getting forward pass and getting last hidden layer
+class TransformerBlock(tf.keras.layers.Layer):
+    def __init__(self, transformer, **kwargs):
+        self.transformer = transformer
+        super(TransformerBlock, self).__init__(**kwargs)
+
+    def call(self, inputs):
+        input_ids, input_attention = inputs
+        return self.transformer(input_ids=input_ids, attention_mask=input_attention).last_hidden_state
 
 class ModelBuilder:
     def __init__(self,freeze=True ,params=params):
@@ -24,6 +33,7 @@ class ModelBuilder:
 
     def build_model(self,transformer, max_length=params['MAX_LENGTH'])->tf.keras.Model:
         # Define weight initializer with a random seed to ensure reproducibility
+        # transformer = distilBERT
         weight_initializer = tf.keras.initializers.GlorotNormal(seed=params['RANDOM_STATE']) 
         
         # Define input layers
@@ -37,8 +47,9 @@ class ModelBuilder:
         # DistilBERT outputs a tuple where the first element at index 0
         # represents the hidden-state at the output of the model's last layer.
         # It is a tf.Tensor of shape (batch_size, sequence_length, hidden_size=768).
-        last_hidden_state = self.transformer([input_ids_layer, input_attention_layer])[0]
-        
+        transformer_block = TransformerBlock(transformer)
+        last_hidden_state = transformer_block([input_ids_layer, input_attention_layer])
+
         # We only care about DistilBERT's output for the [CLS] token, which is located
         # at index 0.  Splicing out the [CLS] tokens gives us 2D data.
         cls_token = last_hidden_state[:, 0, :]
@@ -78,7 +89,7 @@ class ModelBuilder:
         model = tf.keras.Model([input_ids_layer, input_attention_layer], output)
         
         # Compile the model
-        model.compile(tf.keras.optimizers.Adam(lr=params['LEARNING_RATE']), 
+        model.compile(tf.keras.optimizers.Adam(learning_rate=params['LEARNING_RATE']), 
                       loss=focal_loss(),
                       metrics=['accuracy'])
         
