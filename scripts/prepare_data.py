@@ -60,3 +60,31 @@ class CustomDataset(Dataset):
 
         # # Encode X_test
         # X_test_ids, X_test_attention = batch_encode(tokenizer, self.X_test.tolist())
+
+if __name__ == "__main__":
+    from transformers import DistilBertTokenizerFast
+
+    tokenizer_name = 'distilbert-base-uncased'
+    data_dir = 'data'
+    model_dir = './models'
+    annotations_file_path = os.path.join(data_dir, 'annotations_metadata.csv')
+    training_data_dir = os.path.join(data_dir, 'sampled_train')
+    
+    tokenizer = DistilBertTokenizerFast.from_pretrained(tokenizer_name)
+    
+    app = CustomDataset(data_dir=training_data_dir, annotations_file=annotations_file_path, tokenizer=tokenizer)
+    print("Loaded data successfully!")
+    print(app.data)
+
+    app.tokenize_data(tokenizer,pd.Series(app.X_train))
+    app.X_valid.tolist()
+
+    # convert O dtype to pd.series
+    # app.X_train = pd.Series(app.X_train)
+    # temp = app.X_train.tolist()
+
+    # len(temp)
+
+    # batch_encode(tokenizer, temp)
+
+    # texts = temp

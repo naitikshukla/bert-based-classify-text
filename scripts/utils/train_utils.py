@@ -1,5 +1,6 @@
 from scripts.config import params
 import tensorflow as tf
+import tensorflow.keras.backend as K
 
 def batch_encode(tokenizer, texts, batch_size=256, max_length=params['MAX_LENGTH']):
     """""""""
@@ -21,19 +22,20 @@ def batch_encode(tokenizer, texts, batch_size=256, max_length=params['MAX_LENGTH
     attention_mask = []
     
     for i in range(0, len(texts), batch_size):
-        batch = texts[i:i+batch_size]
+        batch = texts[i:i+batch_size]  #0,256,512,768,1024,1280
         inputs = tokenizer.batch_encode_plus(batch,
                                              max_length=max_length,
-                                             padding='longest', #implements dynamic padding
+                                             padding='max_length', #implements dynamic padding
                                              truncation=True,
                                              return_attention_mask=True,
-                                             return_token_type_ids=False
+                                             return_token_type_ids=False,
+                                             return_tensors='tf'
                                              )
         input_ids.extend(inputs['input_ids'])
         attention_mask.extend(inputs['attention_mask'])
     
-    
     return tf.convert_to_tensor(input_ids), tf.convert_to_tensor(attention_mask)
+
 
 
 def focal_loss(gamma=params['FL_GAMMA'], alpha=params['FL_ALPHA']):
