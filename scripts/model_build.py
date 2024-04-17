@@ -1,7 +1,9 @@
-from prepare_data import params
+from scripts.config import params
+
 import tensorflow as tf
-from utils.train_utils import focal_loss
+from scripts.utils.train_utils import focal_loss
 from transformers import TFDistilBertModel, DistilBertConfig
+
 
 class ModelBuilder:
     def __init__(self,freeze=True ,params=params):
@@ -9,7 +11,7 @@ class ModelBuilder:
         config = DistilBertConfig(dropout=params['DISTILBERT_DROPOUT'], 
                                   attention_dropout=params['DISTILBERT_ATT_DROPOUT'], 
                                   output_hidden_states=True)
-        self.distilBERT = TFDistilBertModel.from_pretrained('distilbert-base-uncased', config=config)
+        self.distilBERT = TFDistilBertModel.from_pretrained(params['PRETRAINED_MODEL_NAME'], config=config)
         
         if freeze:
             # Freeze DistilBERT layers to preserve pre-trained weights 

@@ -2,35 +2,9 @@ from torch.utils.data import Dataset
 import pandas as pd
 import os
 import logging
+
 from scripts.utils.train_utils import batch_encode
-
-# Define the maximum number of words to tokenize (DistilBERT can tokenize up to 512)
-MAX_LENGTH = 256
-
-# Set parameters:
-params = {'MAX_LENGTH': 128,
-          'EPOCHS': 6,
-          'LEARNING_RATE': 5e-5,
-          'FT_EPOCHS': 2,
-          'OPTIMIZER': 'adam',
-          'FL_GAMMA': 2.0,
-          'FL_ALPHA': 0.2,
-          'BATCH_SIZE': 64,
-        #   'NUM_STEPS': len(X_train.index) // 64,
-          'DISTILBERT_DROPOUT': 0.2,
-          'DISTILBERT_ATT_DROPOUT': 0.2,
-          'LAYER_DROPOUT': 0.2,
-          'KERNEL_INITIALIZER': 'GlorotNormal',
-          'BIAS_INITIALIZER': 'zeros',
-          'POS_PROBA_THRESHOLD': 0.5,          
-          'ADDED_LAYERS': 'Dense 256, Dense 32, Dropout 0.2',
-          'LR_SCHEDULE': '5e-5 for 6 epochs, Fine-tune w/ adam for 2 epochs @2e-5',
-          'FREEZING': 'All DistilBERT layers frozen for 6 epochs, then unfrozen for 2',
-          'CALLBACKS': '[early_stopping w/ patience=0]',
-          'RANDOM_STATE':42,
-          'TRAIN_RATIO': 0.7,
-            'VALID_RATIO': 0.15
-          }
+from scripts.config import params
 
 class CustomDataset(Dataset):
     def __init__(self, data_dir, annotations_file, tokenizer):

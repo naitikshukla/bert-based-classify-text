@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from scripts.model_build import ModelBuilder
 from scripts.prepare_data import CustomDataset
-from scripts.prepare_data import params
+from scripts.config import params
 
 class ModelTrainer:
     def __init__(self):
@@ -38,8 +38,8 @@ class ModelTrainer:
         params['NUM_STEPS'] = len(self.data.X_train) // params['BATCH_SIZE']
 
     def build_model(self):
-        self.model_builder = ModelBuilder(freeze=True)
-        self.model = self.model_builder.model
+        # self.model_builder = ModelBuilder(freeze=True)
+        # self.model = self.model_builder.model
 
     def train_model(self):
         early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',

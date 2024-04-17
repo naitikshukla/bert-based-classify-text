@@ -1,3 +1,6 @@
+from scripts.config import params
+import tensorflow as tf
+
 def batch_encode(tokenizer, texts, batch_size=256, max_length=params['MAX_LENGTH']):
     """""""""
     A function that encodes a batch of texts and returns the texts'
