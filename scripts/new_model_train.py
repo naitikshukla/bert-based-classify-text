@@ -3,12 +3,13 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 import torch
 from torch.utils.data import DataLoader
-from transformers import AdamW
+# from transformers import AdamW
 from sklearn.metrics import accuracy_score
 
-import tqdm
+# import tqdm
 import logging
 import numpy as np
+import matplotlib.pyplot as plt
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,7 +21,7 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 def train_model(model, train_loader, val_loader, epochs, learning_rate):
     # create optimizer and scheduler
-    optimizer = AdamW(model.parameters(), lr=learning_rate)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
 
     #For Scheduler
     total_steps = params['EPOCHS'] * len(train_loader) # Total number of training steps
@@ -141,6 +142,17 @@ def train_and_evaluate(model, dataset, epochs=params['EPOCHS'],learning_rate= pa
     print(f"Train Loss: {avg_train_loss:.4f}, Train Accuracy: {avg_train_accuracy:.4f}")
     print(f"Val Loss: {avg_val_loss:.4f}, Val Accuracy: {avg_val_accuracy:.4f}, Val Precision: {avg_val_precision:.4f}, Val Recall: {avg_val_recall:.4f}, Val F1: {avg_val_f1:.4f}")
 
+    # After training, plot the training and validation loss
+    plt.figure(figsize=(10, 5))
+    plt.plot(train_losses, label='Training Loss')
+    plt.plot(val_losses, label='Validation Loss')
+    plt.title('Training and Validation Losses')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    
+    # Save the plot to the specified folder
+    plt.savefig('material4gh/loss_plot.png')
 
 if __name__ == "__main__":
     from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification

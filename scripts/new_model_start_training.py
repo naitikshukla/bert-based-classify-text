@@ -2,24 +2,32 @@ import torch
 from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification
 from sklearn.model_selection import train_test_split
 
-from new_data_load import load_data
-from new_model_train import train_and_evaluate
+from scripts.new_data_load import TextDataset, load_data
+from scripts.new_model_train import train_and_evaluate
 
-# Load data
-df = load_data()
-# train_df = pd.read_csv('train.csv')
-# test_df = pd.read_csv('test.csv')
+import logging
+logging.basicConfig(level=logging.INFO)
+class ModelTrainer:
+    def __init__(self):
+        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        self.model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=2)
+        self.tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
+        self.dataset = None
+        self.model.to(self.device)
 
-# Split data into train and validation sets
-train_df, val_df = train_test_split(df, test_size=0.2, random_state=42, stratify=df['label'])
+    def load_data(self):
+        df = load_data()
+        self.dataset = TextDataset(df, self.tokenizer)
 
-# Load tokenizer and model
-tokenizer = DistilBertTokenizerFast.from_pretrained('distilbert-base-uncased')
-model = DistilBertForSequenceClassification.from_pretrained('distilbert-base-uncased', num_labels=2)
+    def train_and_evaluate_model(self):
+        train_and_evaluate(self.model, self.dataset)
 
-# Set device
-device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-model.to(device)
-
-# Train and evaluate model using StratifiedKFold
-train_and_evaluate(model, train_df, val_df)
+    def start_training(self):
+        self.load_data()
+        logging.info("Loaded data successfully!")
+        self.train_and_evaluate_model()
+        logging.info("Training completed!")
+        
+if __name__ == "__main__":
+    trainer = ModelTrainer()
+    trainer.start_training()

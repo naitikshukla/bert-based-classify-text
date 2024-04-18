@@ -2,7 +2,7 @@ from scripts.config import params
 import tensorflow as tf
 import tensorflow.keras.backend as K
 
-def batch_encode(tokenizer, texts, batch_size=256, max_length=params['MAX_LENGTH']):
+def batch_encode(tokenizer, texts, batch_size=256, max_length=params['MAX_LENGTH'],type='pt'):
     """""""""
     A function that encodes a batch of texts and returns the texts'
     corresponding encodings and attention masks that are ready to be fed 
@@ -13,6 +13,7 @@ def batch_encode(tokenizer, texts, batch_size=256, max_length=params['MAX_LENGTH
         - texts:       List of strings where each string represents a text
         - batch_size:  Integer controlling number of texts in a batch
         - max_length:  Integer controlling max number of words to tokenize in a given text
+        - type:        String specifying the type of tensor to be returned ('tf' for tensorflow) or ('pt' for PyTorch)
     Output:
         - input_ids:       sequence of texts encoded as a tf.Tensor object
         - attention_mask:  the texts' attention mask encoded as a tf.Tensor object
@@ -29,10 +30,14 @@ def batch_encode(tokenizer, texts, batch_size=256, max_length=params['MAX_LENGTH
                                              truncation=True,
                                              return_attention_mask=True,
                                              return_token_type_ids=False,
-                                             return_tensors='tf'
+                                             return_tensors=type #'tf' for tensorflow
                                              )
         input_ids.extend(inputs['input_ids'])
         attention_mask.extend(inputs['attention_mask'])
+    
+    if type == 'pt':
+        print("Returnin pytorch tokens")
+        return input_ids, attention_mask
     
     return tf.convert_to_tensor(input_ids), tf.convert_to_tensor(attention_mask)
 

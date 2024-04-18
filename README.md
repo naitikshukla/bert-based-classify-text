@@ -32,4 +32,17 @@ Note: The text in this dataset might contain offensive language.
     ![tokenizer](./material4gh/tokenizer.png)
     <i>BERT and DistilBERT tokenization process. The special [CLS] token stands for ‘classification’ and will contain an embedding for the sentence-level representation of the sequence. The special [SEP] token stands for ‘separation’ and is used to demarcate boundaries between sequences.</i>
 
+
+## How to Run this app?
+`docker run -d -p 8000:8000 hate-speech-detection-api:latest`
+
+or 
+```bash
+git clone `repo name`
+cd `repo name`
+conda create -n `*env name*` python==3.10
+conda activate `*env name*`
+pip install -r requirements.txt
+uvicorn app:app --reload
+```
     
