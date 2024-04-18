@@ -41,5 +41,6 @@ params = {'MAX_LENGTH': 128,
           'TRAIN_RATIO': 0.7,
             'VALID_RATIO': 0.15,
             'PRETRAINED_MODEL_NAME':'distilbert-base-uncased',
+            'LOCAL_MODEL_NAME':'hate_speech_detection_model',
           }
     

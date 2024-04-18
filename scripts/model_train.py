@@ -26,7 +26,6 @@ class ModelTrainer:
         self.X_valid_attention = None
         self.y_train = None
         self.y_valid = None
-        self.model_builder = None
         self.model = None
 
     def load_data(self):
@@ -38,8 +37,8 @@ class ModelTrainer:
         params['NUM_STEPS'] = len(self.data.X_train) // params['BATCH_SIZE']
 
     def build_model(self):
-        self.model_builder = ModelBuilder(freeze=True)
-        self.model = self.model_builder.model
+        model_builder = ModelBuilder(freeze=True)
+        self.model = model_builder.model
 
     def train_model(self):
         early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
@@ -61,8 +60,9 @@ class ModelTrainer:
         return train_history1
 
     def save_model(self):
-        tf.saved_model.save(self.model, os.path.join(self.model_dir, 'hate_speech_detection_model'))
-        print(f"Model saved successfully at {os.path.join(self.model_dir, 'hate_speech_detection_model')}")
+        # tf.saved_model.save(self.model, )
+        self.model.save_pretrained(os.path.join(self.model_dir, params['LOCAL_MODEL_NAME']))
+        print(f"Model saved successfully at {os.path.join(self.model_dir, params['LOCAL_MODEL_NAME'])}")
 
     def evaluate_model(self):
         X_test_ids, X_test_attention = self.data.tokenize_data(self.data.X_test)
@@ -83,7 +83,10 @@ class ModelTrainer:
         plt.xlabel('Epoch', labelpad=14, fontsize=14)
         plt.ylabel('Focal Loss', labelpad=16, fontsize=14)
         print("Minimum Validation Loss: {:0.4f}".format(history_df['val_loss'].min()))
+        #save plot image in material4gh folder
+        plt.savefig('material4gh/loss_plot.png')
         plt.show()
+
 
     def plot_confusion_matrix(self):
         X_test_ids, X_test_attention = self.data.tokenize_data(self.data.X_test)
@@ -99,6 +102,7 @@ class ModelTrainer:
         plt.title(label='Test Confusion Matrix', fontsize=20, pad=17)
         plt.xlabel('Predicted Label', labelpad=14)
         plt.ylabel('True Label', labelpad=14)
+        plt.savefig('material4gh/confusion.png')
         plt.show()
 
 def train_and_save_model_end2end(plot=True):
@@ -119,3 +123,16 @@ if __name__ == '__main__':
     train_and_save_model_end2end(plot=True)
 
     
+from transformers import TFDistilBertModel, DistilBertConfig
+
+config = DistilBertConfig(dropout=params['DISTILBERT_DROPOUT'], 
+                            attention_dropout=params['DISTILBERT_ATT_DROPOUT'], 
+                            output_hidden_states=True)
+
+model_dir = './models'
+local_model_path = os.path.join(model_dir, 'hate_speech_detection_model')
+
+distilBERT_loaded = TFDistilBertModel.from_pretrained(local_model_path, config=config)
+
+# Loading the model
+loaded_model = TFDistilBertModel.from_pretrained("directory")  # automatically loads the configuration.
