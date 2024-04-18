@@ -126,7 +126,7 @@ def train_and_evaluate(model, dataset, epochs=params['EPOCHS'],learning_rate= pa
         val_accuracies.append(val_accuracy)
         
         # Save model for this fold
-        torch.save(fold_model.state_dict(), f"{params['model_dir']}+'/'+fold{fold+1}_model.pt")
+        torch.save(fold_model.state_dict(), f"{params['model_dir']}/fold{fold+1}_model.pt")
         
     # Compute average metrics across folds
     avg_train_loss = sum(train_losses) / len(train_losses)
