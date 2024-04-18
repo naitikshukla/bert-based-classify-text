@@ -18,6 +18,11 @@ Note: The text in this dataset might contain offensive language.
 
 ## inspiration from [blog](https://towardsdatascience.com/hugging-face-transformers-fine-tuning-distilbert-for-binary-classification-tasks-490f1d192379)
 
+### Target Architecture
+![architecture](./material4gh/sample_arch.png)
+NOTE: Ignore Feature selection phase on top right corner
+
+
 ### Data processing
 * DATASET is already balanced so no need for Over/Under sampling `--> Note to do`
 
@@ -37,6 +42,7 @@ Note: The text in this dataset might contain offensive language.
 `docker run -d -p 8000:8000 hate-speech-detection-api:latest`
 
 or 
+
 ```bash
 git clone `repo name`
 cd `repo name`
@@ -45,4 +51,11 @@ conda activate `*env name*`
 pip install -r requirements.txt
 uvicorn app:app --reload
 ```
-    
+
+TO DO:
+1. Handle for unbalanced dataset
+1.1. Either use different loss function like Focal  loss
+1.2. Use Undersampling / Oversampling (generation) - tricky
+2. Train on different model of BeRT family
+3. Train for larger context window - check limitation of 524 length for BERT
+4. Custom Classifier other than pytorch 2 layer Dense neural network - Architecture change.
