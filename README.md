@@ -108,6 +108,6 @@ INFO:root:Best Model: ./models/fold3_model.pt
 ------------------
 
 ## Link to presentation to explain this problem and techniques
-[Problem Sharing](DHL-sharing%20deck.pptx)
+DHL-sharing deck - [[PPTX](./material4gh/DHL-sharing%20deck.pptx) , [PDF](./material4gh/DHL-sharing%20deck.pdf)]
 
 -------
