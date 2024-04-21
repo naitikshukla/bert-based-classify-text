@@ -1,10 +1,11 @@
 from sklearn.model_selection import StratifiedKFold, train_test_split
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, roc_auc_score, roc_curve
 
 import torch
 from torch.utils.data import DataLoader
 # from transformers import AdamW
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
 
 # import tqdm
 import logging
@@ -82,7 +83,7 @@ def train_model(model, train_loader, val_loader, epochs, learning_rate):
 
 def train_and_evaluate(model, dataset, epochs=params['EPOCHS'],learning_rate= params['LEARNING_RATE']):    
     # Create StratifiedKFold object
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=params['RANDOM_STATE'])
+    skf = StratifiedKFold(n_splits=params['n_splits'], shuffle=True, random_state=params['RANDOM_STATE'])
     # dataset = dataloader.dataset
     labels = [sample['label'] for sample in dataset]
     # Initialize metrics
@@ -90,9 +91,15 @@ def train_and_evaluate(model, dataset, epochs=params['EPOCHS'],learning_rate= pa
     train_accuracies = []
     val_losses = []
     val_accuracies = []
-    
+
+    val_recall_list = []
+    val_precision_list = []
+    val_f1_list = []
+
+    roc_auc_list = []
+
     for fold, (train_idx, val_idx) in enumerate(skf.split(np.zeros(len(dataset)), labels), 1):
-        print(f"Fold: {fold+1}")
+        print(f"Fold: {fold}")
         
         # Subset the dataloader
         train_subsampler = torch.utils.data.SubsetRandomSampler(train_idx)
@@ -117,42 +124,117 @@ def train_and_evaluate(model, dataset, epochs=params['EPOCHS'],learning_rate= pa
                 val_preds.extend(preds.cpu().numpy())
                 val_labels.extend(labels.cpu().numpy())
         
-        val_accuracy = accuracy_score(val_labels, val_preds)
+        # val_accuracy = accuracy_score(val_labels, val_preds)
         val_precision, val_recall, val_f1, _ = precision_recall_fscore_support(val_labels, val_preds, average='binary')
         
+        #get confusion matrix
+        cm = confusion_matrix(val_labels, val_preds)
+        logging.info(f"Confusion Matrix: {cm}")
+
+        #get ROC-AUC score
+        roc_auc = roc_auc_score(val_labels, val_preds)
+        logging.info(f"ROC-AUC Score: {roc_auc}")
+
+        #plot roc curve and save
+        fpr, tpr, _ = roc_curve(val_labels, val_preds)
+        plt.figure(figsize=(10, 5))
+        plt.plot(fpr, tpr, label='ROC curve (area = %0.2f)' % roc_auc)
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Receiver Operating Characteristic')
+        plt.legend(loc="lower right")
+        plt.savefig(f"{params['plot_dir']}/roc_curve_fold{fold}.png")
+        # plt.show()
+        # params['plot_dir'] = 'material4gh'
         # Save metrics
         train_losses.append(train_loss)
         train_accuracies.append(train_acc)
         val_losses.append(val_loss)
-        val_accuracies.append(val_accuracy)
+        val_accuracies.append(val_acc)
+        #save precision, recall and f1 for validation
+        val_precision_list.append(val_precision)
+        val_recall_list.append(val_recall)
+        val_f1_list.append(val_f1)
+        roc_auc_list.append(roc_auc)
         
         # Save model for this fold
-        torch.save(fold_model.state_dict(), f"{params['model_dir']}/fold{fold+1}_model.pt")
+        torch.save(fold_model.state_dict(), f"{params['model_dir']}/fold{fold}_model.pt")
         
     # Compute average metrics across folds
     avg_train_loss = sum(train_losses) / len(train_losses)
     avg_train_accuracy = sum(train_accuracies) / len(train_accuracies)
     avg_val_loss = sum(val_losses) / len(val_losses)
     avg_val_accuracy = sum(val_accuracies) / len(val_accuracies)
-    avg_val_precision = sum(val_precision) / len(val_precision)
-    avg_val_recall = sum(val_recall) / len(val_recall)
-    avg_val_f1 = sum(val_f1) / len(val_f1)
+    avg_val_precision = sum(val_precision_list) / len(val_precision_list)
+    avg_val_recall = sum(val_recall_list) / len(val_recall_list)
+    avg_val_f1 = sum(val_f1_list) / len(val_f1_list)
     
-    print(f"Average Metrics Across Folds:")
-    print(f"Train Loss: {avg_train_loss:.4f}, Train Accuracy: {avg_train_accuracy:.4f}")
-    print(f"Val Loss: {avg_val_loss:.4f}, Val Accuracy: {avg_val_accuracy:.4f}, Val Precision: {avg_val_precision:.4f}, Val Recall: {avg_val_recall:.4f}, Val F1: {avg_val_f1:.4f}")
+    logging.info(f"Average Metrics Across Folds:")
+    logging.info(f"Train Loss: {avg_train_loss:.4f}, Train Accuracy: {avg_train_accuracy:.4f}")
+    logging.info(f"Val Loss: {avg_val_loss:.4f}, Val Accuracy: {avg_val_accuracy:.4f}, Val Precision: {avg_val_precision:.4f}, Val Recall: {avg_val_recall:.4f}, Val F1: {avg_val_f1:.4f}")
+    
+    #identify best model parameters and get hyperparameters to train model on full dataet
+    best_fold = val_f1_list.index(max(val_f1_list))
+    logging.info(f"Best Fold: {best_fold}")
+    best_model = f"{params['model_dir']}/fold{best_fold}_model.pt"
+    logging.info(f"Best Model: {best_model}")
+    
+    #plot AUc-ROC curve and save AUC
+    
 
-    # After training, plot the training and validation loss
+    # Return metrics
+    return train_losses, train_accuracies, val_losses, val_accuracies, val_precision_list, val_recall_list, val_f1_list, roc_auc_list
+
+
+def plot_save_metrics(train_losses, train_accuracies, val_losses, val_accuracies, val_precision, val_recall, val_f1, roc_auc_list):
+    # Plot metrics of train and validation accuracy in single plot
     plt.figure(figsize=(10, 5))
-    plt.plot(train_losses, label='Training Loss')
-    plt.plot(val_losses, label='Validation Loss')
-    plt.title('Training and Validation Losses')
-    plt.xlabel('Epoch')
+    plt.plot(train_losses, label='Train Loss')
+    plt.plot(val_losses, label='Val Loss')
+    plt.xlabel('Fold')
     plt.ylabel('Loss')
+    plt.title('Train and Validation Loss')
     plt.legend()
-    
-    # Save the plot to the specified folder
-    plt.savefig('material4gh/loss_plot.png')
+
+    plt.savefig(f"{params['plot_dir']}/loss_plot.png")
+    plt.show()
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(train_accuracies, label='Train Accuracy')
+    plt.plot(val_accuracies, label='Val Accuracy')
+    plt.xlabel('Fold')
+    plt.ylabel('Accuracy')
+    plt.title('Train and Validation Accuracy')
+    plt.legend()
+
+    plt.savefig(f"{params['plot_dir']}/accuracy_plot.png")
+    plt.show()
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(val_precision, label='Val Precision')
+    plt.plot(val_recall, label='Val Recall')
+    plt.plot(val_f1, label='Val F1')
+    plt.xlabel('Fold')
+    plt.ylabel('Score')
+    plt.title('Validation Precision, Recall, F1')
+    plt.legend()
+    plt.savefig(f"{params['plot_dir']}/precision_recall_f1_plot.png")
+    plt.show()
+
+
+    #plot roc_auc over folds
+    plt.figure(figsize=(10, 5))
+    plt.plot(roc_auc_list, label='ROC-AUC')
+    plt.xlabel('Fold')
+    plt.ylabel('Score')
+    plt.title('ROC-AUC Score')
+    plt.legend()
+    plt.savefig(f"{params['plot_dir']}/roc_auc_plot.png")
+    plt.show()
+
 
 if __name__ == "__main__":
     from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification
@@ -169,4 +251,7 @@ if __name__ == "__main__":
     model.to(device)
 
     # Train and evaluate model using StratifiedKFold
-    train_and_evaluate(model, dataset)
+    train_losses, train_accuracies, val_losses, val_accuracies, val_precision, val_recall, val_f1,roc_auc_list = train_and_evaluate(model, dataset)
+
+    plot_save_metrics(train_losses, train_accuracies, val_losses, val_accuracies, val_precision, val_recall, val_f1,roc_auc_list)
+                      

@@ -19,7 +19,7 @@ class config:
 
 
 params = {'MAX_LENGTH': 128,
-          'EPOCHS': 6,
+          'EPOCHS': 2,
           'LEARNING_RATE': 5e-5,
           'WEIGHT_DECAY': 0.01,
           'NUM_EPOCHS': 2,
@@ -48,7 +48,8 @@ params = {'MAX_LENGTH': 128,
         'annotations_file_path' : 'data/annotations_metadata.csv',
         'training_data_dir' : 'data/sampled_train',
         'testing_data_dir': 'data/sampled_test',
-        'n_splits': 5,
+        'n_splits': 4,
+        'plot_dir': 'material4gh',
 
           }
     
