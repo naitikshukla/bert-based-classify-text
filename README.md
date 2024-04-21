@@ -59,3 +59,48 @@ TO DO:
 2. Train on different model of BeRT family
 3. Train for larger context window - check limitation of 524 length for BERT
 4. Custom Classifier other than pytorch 2 layer Dense neural network - Architecture change.
+
+### Experiments Results while Training
+```
+Fold: 1
+INFO:root:Epoch 1/2, Train Loss: 0.5536, Train Acc: 0.0087, Val Loss: 0.4072, Val Acc: 0.0034
+INFO:root:Epoch 2/2, Train Loss: 0.3092, Train Acc: 0.0106, Val Loss: 0.3785, Val Acc: 0.0035
+INFO:root:Confusion Matrix: 
+ [[201  39]
+ [ 32 207]]
+INFO:root:ROC-AUC Score: 0.8518043933054393
+Fold: 2
+INFO:root:Epoch 1/2, Train Loss: 0.3845, Train Acc: 0.0100, Val Loss: 0.2894, Val Acc: 0.0038
+INFO:root:Epoch 2/2, Train Loss: 0.2416, Train Acc: 0.0109, Val Loss: 0.2590, Val Acc: 0.0037
+INFO:root:Confusion Matrix: 
+ [[208  31]
+ [ 18 222]]
+INFO:root:ROC-AUC Score: 0.8976464435146444
+Fold: 3
+INFO:root:Epoch 1/2, Train Loss: 0.2593, Train Acc: 0.0108, Val Loss: 0.1619, Val Acc: 0.0040
+INFO:root:Epoch 2/2, Train Loss: 0.1155, Train Acc: 0.0116, Val Loss: 0.1541, Val Acc: 0.0040
+INFO:root:Confusion Matrix: 
+ [[229  10]
+ [ 12 227]]
+INFO:root:ROC-AUC Score: 0.9539748953974896
+Fold: 4
+INFO:root:Epoch 1/2, Train Loss: 0.1416, Train Acc: 0.0114, Val Loss: 0.0628, Val Acc: 0.0041
+INFO:root:Epoch 2/2, Train Loss: 0.0636, Train Acc: 0.0118, Val Loss: 0.0640, Val Acc: 0.0041
+INFO:root:Confusion Matrix: 
+ [[231   8]
+ [  2 237]]
+INFO:root:ROC-AUC Score: 0.9790794979079499
+
+INFO:root:Average Metrics Across Folds:
+INFO:root:Train Loss: 0.1825, Train Accuracy: 0.0113
+INFO:root:Val Loss: 0.2139, Val Accuracy: 0.0038, Val Precision: 0.9110, Val Recall: 0.9331, Val F1: 0.9218
+INFO:root:Best Fold: 3
+INFO:root:Best Model: ./models/fold3_model.pt
+```
+#### Accuracy and Loss Plot for folds
+![Accuracy](./material4gh/accuracy_plot.png) ![loss](./material4gh/loss_plot.png)
+
+### Validation Precision Recall and F1 curve
+![precision_recall_F1](./material4gh/precision_recall_f1_plot.png)
+### ROC curve for best fold: 3
+![ROC](./material4gh/roc_curve_fold3.png)
