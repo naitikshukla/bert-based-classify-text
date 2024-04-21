@@ -104,3 +104,10 @@ INFO:root:Best Model: ./models/fold3_model.pt
 ![precision_recall_F1](./material4gh/precision_recall_f1_plot.png)
 ### ROC curve for best fold: 3
 ![ROC](./material4gh/roc_curve_fold3.png)
+
+------------------
+
+## Link to presentation to explain this problem and techniques
+[Problem Sharing](DHL-sharing%20deck.pptx)
+
+-------
