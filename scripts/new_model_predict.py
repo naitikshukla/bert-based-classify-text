@@ -1,5 +1,6 @@
 import torch
-from transformers import RobertaTokenizer, RobertaForSequenceClassification
+from transformers import DistilBertTokenizerFast, DistilBertForSequenceClassification
+
 from scripts.config import params
 import logging
 from typing import Any
@@ -13,10 +14,10 @@ class ModelPredictor:
     def __init__(self):
         # Load model and tokenizer
         model_path = "models/fold3_model.pt"
-        self.model = RobertaForSequenceClassification.from_pretrained(params['PRETRAINED_MODEL_NAME'])
+        self.model = DistilBertForSequenceClassification.from_pretrained(params['PRETRAINED_MODEL_NAME'])
         self.model.load_state_dict(torch.load(model_path, map_location=device)) #load model weights new trained
         self.model.to(device)
-        self.tokenizer = RobertaTokenizer.from_pretrained(params['PRETRAINED_MODEL_NAME'])
+        self.tokenizer = DistilBertTokenizerFast.from_pretrained(params['PRETRAINED_MODEL_NAME'])
 
     def predict_probability(self, text: str) -> Any:
         text = clean_text(text)
