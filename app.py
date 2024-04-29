@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from scripts.new_model_predict import ModelPredictor
+from scripts.saved_custom_model_predict import TextClassifier
+
+model_file = './models/pytorch_distilbert_custom.bin'
 
 app = FastAPI()
 
@@ -8,7 +10,7 @@ class TextInput(BaseModel):
     text: str
 
 # Initialize the predictor for the model
-predictor  = ModelPredictor()
+predictor  = TextClassifier(model_file)
 
 @app.get("/")
 async def read_root():
@@ -16,9 +18,9 @@ async def read_root():
 
 @app.post("/predict")
 async def predict(input: TextInput):
-    probabilities = predictor.predict_probability(input.text)
-    readable_output = predictor.convert_to_readable_output(probabilities)
-    return readable_output
+    output = predictor.predict(input.text)
+    # readable_output = predictor.convert_to_readable_output(probabilities)
+    return output
 
 
 # run using docker command
